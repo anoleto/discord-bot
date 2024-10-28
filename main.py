@@ -5,7 +5,7 @@ import os
 import config
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import os
 from datetime import datetime
 
@@ -20,13 +20,14 @@ from utils.help import Help
 
 class Bot(commands.Bot):
     def __init__(self) -> None:
+        self.config = config
         intents = discord.Intents.default() # init intents
         intents.message_content = True
         intents.members = True
         
-        super().__init__(command_prefix=config.PREFIX, 
+        super().__init__(command_prefix=self.config.PREFIX, 
                          intents=intents,
-                         activity=discord.CustomActivity(name='hi'),
+                         activity=discord.CustomActivity(name=self.config.Status),
                          help_command=Help())
         
         self.startup_time = datetime.utcnow()
@@ -39,6 +40,8 @@ class Bot(commands.Bot):
         await self.load_extensions()
         log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.BLUE)
         log("bot is ready!", Ansi.GREEN)
+
+        self.check_db_connection.start()
     
     async def load_extensions(self) -> None:
         for category in CATEGORIES:
@@ -54,7 +57,7 @@ class Bot(commands.Bot):
 
     async def on_command(self, ctx: commands.Context) -> None:
         """logs every command executed"""
-        if config.DEBUG:
+        if self.config.DEBUG:
             log(f"command executed: {ctx.command} by {ctx.author} in {ctx.guild}/{ctx.channel}", Ansi.YELLOW)
 
     async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
@@ -62,7 +65,7 @@ class Bot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return
         
-        if config.DEBUG:
+        if self.config.DEBUG:
             log(f"command error in {ctx.command}: {str(error)}", Ansi.RED)
         
         await ctx.send(f"an error occurred: {str(error)}")
@@ -77,6 +80,21 @@ class Bot(commands.Bot):
             log('connected to MySQL!', Ansi.LGREEN)
         except Exception as e:
             log(f"database connection failed: {str(e)}", Ansi.RED)
+
+    @tasks.loop(minutes=3)
+    async def check_db_connection(self) -> None:
+        """db connection check"""
+        # XXX: per sometime the db just throws ConnectionResetError??
+        # XXX: idk anymore i just want to sleep
+        if glob.db:
+            try:
+                await glob.db.fetch('select 1') # just try to fetch somethign
+            except:
+                await self.initialize_db()
+
+    @check_db_connection.before_loop
+    async def before_check_db_connection(self) -> None:
+        await self.wait_until_ready()
 
 if __name__ == '__main__':
     try:

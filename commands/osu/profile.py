@@ -40,7 +40,7 @@ class Profile(commands.Cog):
         modestr = self.get_mode_str(mode)
         
         try:
-            profile = self.api.get_player_info("all", username=username)
+            profile = await self.api.get_player_info("all", username=username)
             player_info = profile["player"]["info"]
             player_stats = profile["player"]["stats"].get(str(mode))
 

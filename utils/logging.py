@@ -1,7 +1,6 @@
 # XXX: this logging was made by cmyui,
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/logging.py
 # NOTE: used this because for clean logging
-
 import sys
 import colorsys
 

@@ -1,7 +1,6 @@
 
 from __future__ import annotations
 
-import discord
 import os
 import config
 
@@ -12,6 +11,9 @@ from datetime import datetime
 
 from utils.logging import log
 from utils.logging import Ansi
+from cmyui.mysql import AsyncSQLPool
+
+from objects import glob
 
 from commands import CATEGORIES
 from utils.help import Help
@@ -60,8 +62,21 @@ class Bot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return
         
-        log(f"command error in {ctx.command}: {str(error)}", Ansi.RED)
+        if config.DEBUG:
+            log(f"command error in {ctx.command}: {str(error)}", Ansi.RED)
+        
         await ctx.send(f"an error occurred: {str(error)}")
+
+    async def on_connect(self) -> None:
+        await self.initialize_db()
+
+    async def initialize_db(self) -> None:
+        try:
+            glob.db = AsyncSQLPool()
+            await glob.db.connect(glob.config.db_config)
+            log('connected to MySQL!', Ansi.LGREEN)
+        except Exception as e:
+            log(f"database connection failed: {str(e)}", Ansi.RED)
 
 if __name__ == '__main__':
     try:

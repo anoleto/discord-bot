@@ -4,3 +4,13 @@ PREFIX = '!'
 OwnerID = 
 MainServerID =
 Status = 'tee-hee'
+db_config = {
+    'host': '',
+    'user': '',
+    'password': '',
+    'db': ''
+}
+
+# XXX: for osu bancho.py based servers
+Bancho = ''
+BanchoApiKey = ''

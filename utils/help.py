@@ -15,7 +15,6 @@ class Help(commands.HelpCommand):
         for cog, commands in mapping.items():
             if commands:
                 if cog is not None:
-                    help_text += f"**{cog.qualified_name}**\n"
                     for command in commands:
                         help_text += f"`{command.name}`: {command.help}\n"
         

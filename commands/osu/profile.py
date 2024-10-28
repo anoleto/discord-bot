@@ -116,11 +116,16 @@ class Profile(commands.Cog):
         else:
             if args:
                 arg_parts = args.split()
-                for arg in arg_parts:
-                    mode = self.get_mode_id(arg)
-                    arg_parts.remove(arg)
-                    break
-                username = " ".join(arg_parts).strip()
+                modes = arg_parts[0]
+                mode = self.get_mode_id(modes)
+
+                if mode != 0:
+                    username = ""
+                else:
+                    username = arg_parts[0]
+                    if len(arg_parts) > 1:
+                        modes = arg_parts[1]
+                        mode = self.get_mode_id(modes)
 
             if not username:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])
@@ -130,7 +135,8 @@ class Profile(commands.Cog):
                 else:
                     await ctx.send("no profile set. Use `!setprofile <name> (mode)` to set a default profile.")
                     return
-                
+        #log(username)
+        #log(mode)
         return username, mode
     
     # TODO: put these in a new file

@@ -19,6 +19,8 @@ class Profile(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         """Get player profile info from the Bancho.py-based server"""
         self.bot: Bot = bot
+        self.api = ApiClient()
+        self.server = config.Bancho
 
     @commands.hybrid_command(
         name="profile",
@@ -38,7 +40,7 @@ class Profile(commands.Cog):
         modestr = self.get_mode_str(mode)
         
         try:
-            profile = ApiClient().get_player_info("all", username=username)
+            profile = self.api.get_player_info("all", username=username)
             player_info = profile["player"]["info"]
             player_stats = profile["player"]["stats"].get(str(mode))
 
@@ -57,12 +59,12 @@ class Profile(commands.Cog):
 
             embed = discord.Embed(title=f"{player_info['name']}'s {modestr} profile",
                                   color=discord.Color.random(),
-                                  url=f"https://{config.Bancho}/u/{player_info['id']}")
+                                  url=f"https://{self.server}/u/{player_info['id']}")
             
-            embed.set_thumbnail(url=f"https://a.{config.Bancho}/{player_info['id']}")
-            
+            embed.set_thumbnail(url=f"https://a.{self.server}/{player_info['id']}")
+
             # XXX: in refx theres xp calculation
-            xp_check = f"**xp:** {player_stats['xp']}\n" if 'refx.online' in config.Bancho else ""
+            xp_check = f"**xp:** {player_stats['xp']}\n" if 'refx.online' in self.server else ""
 
             embed.add_field(name="performance", value=(
                 f"**pp:** {player_stats['pp']:,}pp\n"

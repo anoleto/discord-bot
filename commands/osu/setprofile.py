@@ -15,7 +15,7 @@ class SetProfile(commands.Cog):
         self.bot: Bot = bot
         self.mode = Mode
 
-    @commands.hybrid_command(
+    @commands.command(
         name="setprofile",
         description="set your in-game username and mode.",
     )

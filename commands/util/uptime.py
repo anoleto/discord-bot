@@ -12,7 +12,7 @@ class Uptime(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
     
-    @commands.hybrid_command(
+    @commands.command(
         name="uptime",
         description="check how long the bot has been running"
     )

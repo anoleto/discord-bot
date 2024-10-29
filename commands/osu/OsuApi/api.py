@@ -24,7 +24,7 @@ class ApiClient:
             "id": user_id,
             "mods": mods_arg,
             "mode": mode_arg,
-            "scope": scope
+            "scope": scope # recent | best
         }
         
         return await self._get("get_player_scores", {k: v for k, v in params.items() if v is not None})
@@ -42,10 +42,10 @@ class ApiClient:
         params = {
             "id": user_id,
             "name": username,
-            "scope": scope,
+            "scope": scope, # all | stats | info
         }
 
         return await self._get("get_player_info", {k: v for k, v in params.items() if v is not None})
-
+                
     async def close(self):
         await self.client.aclose()

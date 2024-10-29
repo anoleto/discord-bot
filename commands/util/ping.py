@@ -11,7 +11,7 @@ class Ping(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
     
-    @commands.hybrid_command(
+    @commands.command(
         name="ping",
         description="check the bot's latency"
     )

@@ -16,7 +16,7 @@ class Eval(commands.Cog):
         self.bot: Bot = bot
     
     @commands.is_owner()
-    @commands.hybrid_command(
+    @commands.command(
         name="eval",
         description="eval",
     )

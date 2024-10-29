@@ -11,6 +11,7 @@ from datetime import timedelta
 from commands.osu.OsuApi.api import ApiClient
 from utils.logging import log
 from utils.OsuMapping import Mode
+from utils.args import ArgParsing
 
 from objects import glob
 
@@ -24,8 +25,9 @@ class Profile(commands.Cog):
         self.api = ApiClient()
         self.server = config.Bancho
         self.mode = Mode
+        self.arg = ArgParsing
 
-    @commands.hybrid_command(
+    @commands.command(
         name="profile",
         aliases=['pf', 'osu'],
         description="get player profile",
@@ -36,7 +38,7 @@ class Profile(commands.Cog):
         mode args:
         vn!std, vn!taiko, vn!mania, vn!ctb | rx!std, rx!taiko, rx!ctb | ap!std
         """
-        username, mode = await self.parse_args(ctx, args)
+        username, mode = await self.arg.parse_args(self, ctx, args)
         if username is None or mode is None:
             return
 
@@ -92,55 +94,6 @@ class Profile(commands.Cog):
             log(e)
             await ctx.send("error getting profile. did you type the username correctly?")
             return
-
-    async def parse_args(self, ctx: commands.Context, args: str) -> Tuple[Optional[str], int]:
-        """parse the username and mode from the arguments."""
-        # TODO: cleanup
-        user_id = str(ctx.author.id)
-        username = ""
-        mode = 0
-
-        mentioned_users = ctx.message.mentions
-        mentioned_users = [user for user in mentioned_users if user.id != ctx.bot.user.id]
-
-        if mentioned_users: # NOTE: !pf @user
-            mentioned_user = str(mentioned_users[0].id)
-            try:
-                result = await glob.db.fetch('select name, mode from users where id = %s', [mentioned_user])
-                if result:
-                    username = result['name']
-                    mode = result['mode']
-                else:
-                    await ctx.send(f"user <@{mentioned_user}> not found in the database.")
-                    return None, None
-            except Exception as err:
-                await ctx.send(f"error retrieving profile from database: {err}")
-                return None, None
-        else:
-            if args:
-                arg_parts = args.split()
-                modes = arg_parts[0]
-                mode = self.mode.from_string(modes)
-
-                if mode != 0:
-                    username = ""
-                else:
-                    username = arg_parts[0]
-                    if len(arg_parts) > 1:
-                        modes = arg_parts[1]
-                        mode = self.mode.from_string(modes)
-
-            if not username:
-                result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])
-                if result:
-                    username = result['name']
-                    mode = result['mode'] if mode == 0 else mode
-                else:
-                    await ctx.send("no profile set. Use `!setprofile <name> (mode)` to set a default profile.")
-                    return None, None
-        #log(username)
-        #log(mode)
-        return username, mode
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Profile(bot))

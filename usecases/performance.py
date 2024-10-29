@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import TypedDict
 
 # placeholder
-from refx_pp_py import Beatmap
-from refx_pp_py import Calculator
+from akatsuki_pp_py import Beatmap
+from akatsuki_pp_py import Calculator
 
 from utils.OsuMapping import Mods
 

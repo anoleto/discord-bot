@@ -43,20 +43,5 @@ class SetProfile(commands.Cog):
 
         await ctx.send(f"profile set for {username} in mode {mode}.")
 
-    def get_mode_id(self, mode_str: str) -> int:
-        """Map a mode string to its corresponding integer ID."""
-        mode_mapping = {
-            "vn!std": 0,
-            "vn!taiko": 1,
-            "vn!catch": 2,
-            "vn!mania": 3,
-            "rx!std": 4,
-            "rx!taiko": 5,
-            "rx!catch": 6,
-            "ap!std": 8,
-        }
-
-        return mode_mapping.get(mode_str.lower(), 0)
-
 async def setup(bot: Bot) -> None:
     await bot.add_cog(SetProfile(bot))

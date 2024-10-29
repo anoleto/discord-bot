@@ -23,6 +23,7 @@ class Bot(commands.Bot):
         self.config = config
         intents = discord.Intents.default() # init intents
         intents.message_content = True
+        intents.guilds = True
         intents.members = True
         
         super().__init__(command_prefix=self.config.PREFIX, 

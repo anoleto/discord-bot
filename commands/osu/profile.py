@@ -10,6 +10,8 @@ from datetime import timedelta
 
 from commands.osu.OsuApi.api import ApiClient
 from utils.logging import log
+from utils.OsuMapping import Mode
+
 from objects import glob
 
 if TYPE_CHECKING:
@@ -21,6 +23,7 @@ class Profile(commands.Cog):
         self.bot: Bot = bot
         self.api = ApiClient()
         self.server = config.Bancho
+        self.mode = Mode
 
     @commands.hybrid_command(
         name="profile",
@@ -37,7 +40,7 @@ class Profile(commands.Cog):
         if username is None or mode is None:
             return
 
-        modestr = self.get_mode_str(mode)
+        modestr = self.mode.to_string(mode)
         
         try:
             profile = await self.api.get_player_info("all", username=username)
@@ -100,7 +103,7 @@ class Profile(commands.Cog):
         mentioned_users = ctx.message.mentions
         mentioned_users = [user for user in mentioned_users if user.id != ctx.bot.user.id]
 
-        if mentioned_users:
+        if mentioned_users: # NOTE: !pf @user
             mentioned_user = str(mentioned_users[0].id)
             try:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [mentioned_user])
@@ -109,15 +112,15 @@ class Profile(commands.Cog):
                     mode = result['mode']
                 else:
                     await ctx.send(f"user <@{mentioned_user}> not found in the database.")
-                    return
+                    return None, None
             except Exception as err:
                 await ctx.send(f"error retrieving profile from database: {err}")
-                return
+                return None, None
         else:
             if args:
                 arg_parts = args.split()
                 modes = arg_parts[0]
-                mode = self.get_mode_id(modes)
+                mode = self.mode.from_string(modes)
 
                 if mode != 0:
                     username = ""
@@ -125,7 +128,7 @@ class Profile(commands.Cog):
                     username = arg_parts[0]
                     if len(arg_parts) > 1:
                         modes = arg_parts[1]
-                        mode = self.get_mode_id(modes)
+                        mode = self.mode.from_string(modes)
 
             if not username:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])
@@ -134,41 +137,10 @@ class Profile(commands.Cog):
                     mode = result['mode'] if mode == 0 else mode
                 else:
                     await ctx.send("no profile set. Use `!setprofile <name> (mode)` to set a default profile.")
-                    return
+                    return None, None
         #log(username)
         #log(mode)
         return username, mode
-    
-    # TODO: put these in a new file
-    def get_mode_id(self, mode_str: str) -> int:
-        """get mode id mapping from mode string."""
-        mode_mapping = {
-            "vn!std": 0,
-            "vn!taiko": 1,
-            "vn!catch": 2,
-            "vn!mania": 3,
-            "rx!std": 4,
-            "rx!taiko": 5,
-            "rx!catch": 6,
-            "ap!std": 8
-        }
-
-        return mode_mapping.get(mode_str.lower(), 0)
-
-    def get_mode_str(self, mode_id: int) -> str:
-        """get mode string mapping from integer."""
-        int2mode = {
-            0: "vn!std",
-            1: "vn!taiko",
-            2: "vn!catch",
-            3: "vn!mania",
-            4: "rx!std",
-            5: "rx!taiko",
-            6: "rx!catch",
-            8: "ap!std"
-        }
-        
-        return int2mode.get(mode_id, "vn!std")
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Profile(bot))

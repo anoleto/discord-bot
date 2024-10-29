@@ -5,6 +5,7 @@ from discord.ext import commands
 from typing import TYPE_CHECKING
 
 from objects import glob
+from utils.OsuMapping import Mode
 
 if TYPE_CHECKING:
     from main import Bot
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
 class SetProfile(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
+        self.mode = Mode
 
     @commands.hybrid_command(
         name="setprofile",
@@ -23,7 +25,7 @@ class SetProfile(commands.Cog):
             await ctx.send("you must provide both an username and a mode: `!setprofile <username> <mode>`")
             return
 
-        mode_int = self.get_mode_id(mode)
+        mode_int = self.mode.from_string(mode)
         user_id = str(ctx.author.id)
 
         result = await glob.db.fetch('select * from users where id = %s', [user_id])

@@ -3,7 +3,7 @@ DEBUG = False # NOTE: to logs all commands executed by user
 PREFIX = '!'
 OwnerID = 
 MainServerID =
-Status = 'tee-hee'
+Status = 'tee-hee' # NOTE: bot status
 db_config = {
     'host': '',
     'user': '',
@@ -13,4 +13,15 @@ db_config = {
 
 # XXX: for osu bancho.py based servers
 Bancho = ''
-BanchoApiKey = ''
+BanchoApiKey = '' # shouldnt needed? only for calculate_pp and it hasnt implemented
+
+# XXX: fun
+ownercheckmotd = [
+    "https://www.youtube.com/watch?v=_tYbmNb4VVQ",
+    "https://www.youtube.com/watch?v=4QDG2BWxLdE",
+    "https://www.youtube.com/watch?v=qlI-HrohYtQ",
+    "https://www.youtube.com/watch?v=8GeB7xZqJ48",
+    "https://www.youtube.com/watch?v=ML_SkKyZLbA",
+    "https://www.youtube.com/watch?v=U09UQ4TXNEQ",
+    "https://youtu.be/766qmHTc2ro?si=Pjiq8VIjV22AJtdG"
+]

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import discord
 import config
+import httpx
 
 from discord.ext import commands
 from typing import TYPE_CHECKING, Tuple, Optional
@@ -90,9 +91,12 @@ class Profile(commands.Cog):
 
             await ctx.send(embed=embed)
 
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404: # XXX: might be wrong username?
+                await ctx.send(f"{username} not found in {self.server}")
+
         except Exception as e:
-            log(e)
-            await ctx.send("error getting profile. did you type the username correctly?")
+            await ctx.send(f"error getting profile. {e}")
             return
 
 async def setup(bot: Bot) -> None:

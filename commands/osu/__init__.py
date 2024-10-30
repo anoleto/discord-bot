@@ -4,6 +4,7 @@ available_commands: List[str] = [
     'setprofile'
     'profile'
     'recent'
+    'top'
 ]
 
 from .setprofile import SetProfile

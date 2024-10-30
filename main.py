@@ -31,7 +31,7 @@ class Bot(commands.Bot):
                          activity=discord.CustomActivity(name=self.config.Status),
                          help_command=Help())
         
-        self.startup_time = datetime.utcnow()
+        self.startup_time = datetime.now()
     
     async def setup_hook(self) -> None: 
         log("starting bot setup...", Ansi.CYAN)

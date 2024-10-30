@@ -36,8 +36,6 @@ class Profile(commands.Cog):
     async def profile(self, ctx: commands.Context, *, args: str = None) -> None:
         """get player profile
         usage: `!pf <username> (mode)`
-        mode args:
-        vn!std, vn!taiko, vn!mania, vn!ctb | rx!std, rx!taiko, rx!ctb | ap!std
         """
         username, mode = await self.arg.parse_args(self, ctx, args)
         if username is None or mode is None:

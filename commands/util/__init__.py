@@ -2,17 +2,17 @@ from typing import List
 
 available_commands: List[str] = [
     'ping',
-    'uptime',
+    'info',
     'eval'
 ]
 
 from .ping import Ping
-from .uptime import Uptime
+from .info import Info
 from .eval import Eval
 
 __all__ = [
     'Ping',
-    'Uptime',
+    'Info',
     'Eval',
     'available_commands'
 ]

@@ -362,14 +362,26 @@ class Score(commands.Cog):
         except Exception as er:
             await ctx.send(f"failed to fetch scores: {er}")
 
-    @commands.command(name="recent", aliases=['r', 'rs'])
+    @commands.command(name="recent", aliases=['r', 'rs'], 
+                      description="get player's most recent scores")
     async def recent(self, ctx: commands.Context, *, args: str = None) -> None:
-        """get player's most recent scores."""
+        """get player's most recent scores.
+        command usage example: 
+        - `!r ano +rx!std`
+        - `!r @rieki +vn!ctb`
+        - `!r +vn!std`
+        """
         await self._handle_score_command(ctx, args, "recent", 1)
 
-    @commands.command(name="top", aliases=['t', 'osutop'])
+    @commands.command(name="top", aliases=['t', 'osutop'],
+                      description="get player's top scores")
     async def top(self, ctx: commands.Context, *, args: str = None) -> None:
-        """get player's top scores."""
+        """get player's top scores.
+        command usage example: 
+        - !t `ano +ap!std`
+        - !t `+rx!std`
+        - !t `@nipa +vn!std`
+        """
         await self._handle_score_command(ctx, args, "best", 5)
 
 async def setup(bot: Bot) -> None:

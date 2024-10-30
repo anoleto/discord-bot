@@ -9,7 +9,7 @@ from objects import glob
 class ArgParsing:
     def __init__(self) -> None:
         """for the annoying args parsing"""
-        self.mode = Mode()
+        self.mode = Mode
 
     async def parse_args(self, ctx: commands.Context, args: str) -> Tuple[Optional[str], Optional[int]]:
         user_id = str(ctx.author.id)

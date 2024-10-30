@@ -35,8 +35,6 @@ class Bot(commands.Bot):
     
     async def setup_hook(self) -> None: 
         log("starting bot setup...", Ansi.CYAN)
-        log("syncing slash commands...", Ansi.CYAN)
-        await self.tree.sync()
         
         await self.load_extensions()
         log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.BLUE)
@@ -70,6 +68,14 @@ class Bot(commands.Bot):
             log(f"command error in {ctx.command}: {str(error)}", Ansi.RED)
         
         await ctx.send(f"an error occurred: {str(error)}")
+
+    async def on_message(self,  message: discord.Message) -> None:
+        """lower the message"""
+        if message.author == self.user:
+            return
+
+        message.content = message.content.lower()
+        await self.process_commands(message)
 
     async def on_connect(self) -> None:
         await self.initialize_db()

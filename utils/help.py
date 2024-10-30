@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import discord
+import psutil
 from discord.ext import commands
 
 class Help(commands.HelpCommand):
@@ -20,6 +21,12 @@ class Help(commands.HelpCommand):
         
         if help_text == "here are the commands available:\n":
             help_text += "no commands available."
+        
+        # XXX: add infos
+        memory_usage = psutil.Process().memory_info().rss / 1024 ** 2
+        cpu = psutil.cpu_percent(interval=1)
+        
+        help_text += f"\nmemory usage: {memory_usage:.2f} MB\nCPU usages: {cpu}%"
 
         await self.send_help_message(self.context, help_text)
 

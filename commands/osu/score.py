@@ -132,7 +132,7 @@ class ScoreEmbed:
         )
         
         if score['grade'] != 'F':
-            embed.description += f"▸ [Replay](https://api.{self.server}/v1/get_replay?id={score['id']})"
+            embed.description += f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})"
         
         embed.set_author(
             name=f"{details['title']} {details['mods']} [{details['stars']}]",
@@ -165,10 +165,8 @@ class ScoreEmbed:
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
+                f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})"
             )
-            
-            if score['grade'] != 'F':
-                value += f"▸ [Replay](https://api.{self.server}/v1/get_replay?id={score['id']})"
             
             embed.add_field(
                 name=f"{i + (current_page * 5)}. {details['title']}",

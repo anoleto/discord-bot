@@ -107,7 +107,7 @@ class BeatmapCalculator:
         return str(filepath)
 
     async def calculate_map_stats(self, score: Dict, beatmap: Dict) -> MapCalculation:
-        """calculate map statistics including PP and stars."""
+        """calculate map statistics if fc including PP and stars."""
         beatmap_path = await self.download_map(beatmap['id'], beatmap['md5'])
         
         score_params = ScoreParams(
@@ -355,9 +355,12 @@ class Score(commands.Cog):
                 command_type="top" if command_type == "best" else "recent"
             )
 
-        except Exception as e:
-            await ctx.send("an error occurred")
-            log(f"error in {command_type} command: {e}", Ansi.YELLOW)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404: # XXX: might be wrong username?
+                await ctx.send(f"{username} not found in {self.server}")
+
+        except Exception as er:
+            await ctx.send(f"failed to fetch scores: {er}")
 
     @commands.command(name="recent", aliases=['r', 'rs'])
     async def recent(self, ctx: commands.Context, *, args: str = None) -> None:

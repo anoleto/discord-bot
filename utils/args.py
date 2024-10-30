@@ -19,7 +19,7 @@ class ArgParsing:
         mentioned_users = ctx.message.mentions
         mentioned_users = [user for user in mentioned_users if user.id != ctx.bot.user.id]
 
-        if mentioned_users: # NOTE: !pf @user
+        if mentioned_users:  # NOTE: !pf @user
             mentioned_user = str(mentioned_users[0].id)
             try:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [mentioned_user])
@@ -35,15 +35,16 @@ class ArgParsing:
         else:
             if args:
                 arg_parts = args.split()
-                modes = self.mode.from_string(arg_parts[0])
-
-                if modes is not None:
-                    mode = modes
-                    username = ""
+                if arg_parts[0].startswith('+'):
+                    modes = arg_parts[0][1:]
+                    mode = self.mode.from_string(modes)
+                    if len(arg_parts) > 1:
+                        username = arg_parts[1]
                 else:
                     username = arg_parts[0]
                     if len(arg_parts) > 1:
-                        mode = self.mode.from_string(arg_parts[1]) or 0
+                        modes = arg_parts[1]
+                        mode = self.mode.from_string(modes)
 
             if not username:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])

@@ -90,7 +90,7 @@ def calculate_performances(osu_file_path: str, scores: Iterable[ScoreParams]) ->
             # NOTE: for refx
             shaymi_mode=True if score.mode > 3 else False
         )
-        
+
         # NOTE: for refx
         if score.mode > 3:
             calculator.cheat_ac(0 if score.AC is None or score.AC < 1 else score.AC)

@@ -35,16 +35,15 @@ class ArgParsing:
         else:
             if args:
                 arg_parts = args.split()
-                modes = arg_parts[0]
-                mode = self.mode.from_string(modes)
+                modes = self.mode.from_string(arg_parts[0])
 
-                if mode != 0:
+                if modes is not None:
+                    mode = modes
                     username = ""
                 else:
                     username = arg_parts[0]
                     if len(arg_parts) > 1:
-                        modes = arg_parts[1]
-                        mode = self.mode.from_string(modes)
+                        mode = self.mode.from_string(arg_parts[1]) or 0
 
             if not username:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])

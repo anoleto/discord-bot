@@ -3,35 +3,57 @@ from __future__ import annotations
 from enum import Enum
 
 class Mode(Enum):
-    VN_STD = 0
-    VN_TAIKO = 1
-    VN_CATCH = 2
-    VN_MANIA = 3
-    RX_STD = 4
-    RX_TAIKO = 5
-    RX_CATCH = 6
+    VN_STD = REFX_STD = 0
+    VN_TAIKO = REFX_TAIKO = 1
+    VN_CATCH = REFX_CATCH = 2
+    VN_MANIA = REFX_MANIA = 3
+    RX_STD = SHAYMI_STD = 4
+    RX_TAIKO = SHAYMI_TAIKO = 5
+    RX_CATCH = SHAYMI_CATCH = 6
+    RX_MANIA = SHAYMI_MANIA = 7  # NOTE: special case refx has 2 mania leaderboard
     AP_STD = 8
 
     @classmethod
     def from_string(cls, mode_str: str) -> int:
         mode_mapping = {
-            "vn!std": cls.VN_STD,
-            "vn!taiko": cls.VN_TAIKO,
-            "vn!catch": cls.VN_CATCH,
-            "vn!mania": cls.VN_MANIA,
-            "rx!std": cls.RX_STD,
-            "rx!taiko": cls.RX_TAIKO,
-            "rx!catch": cls.RX_CATCH,
-            "ap!std": cls.AP_STD
+            "+vn!std": cls.VN_STD,
+            "+vn!taiko": cls.VN_TAIKO,
+            "+vn!catch": cls.VN_CATCH,
+            "+vn!mania": cls.VN_MANIA,
+            "+rx!std": cls.RX_STD,
+            "+rx!taiko": cls.RX_TAIKO,
+            "+rx!catch": cls.RX_CATCH,
+            "+rx!mania": cls.RX_MANIA,
+            "+ap!std": cls.AP_STD,
+
+            # NOTE: refx mapping
+            "+refx!std": cls.REFX_STD,
+            "+refx!taiko": cls.REFX_TAIKO,
+            "+refx!catch": cls.REFX_CATCH,
+            "+refx!mania": cls.REFX_MANIA,
+            "+shaymi!std": cls.SHAYMI_STD,
+            "+shaymi!taiko": cls.SHAYMI_TAIKO,
+            "+shaymi!catch": cls.SHAYMI_CATCH,
+            "+shaymi!mania": cls.SHAYMI_MANIA,
         }
 
         return mode_mapping.get(mode_str.lower(), cls.VN_STD).value
 
     @classmethod
     def to_string(cls, mode_id: int) -> str:
-        int2mode = {mode.value: mode.name.lower().replace('_', '!') for mode in cls}
+        int2mode = {
+            0: "+refx!std",
+            1: "+refx!taiko",
+            2: "+refx!catch",
+            3: "+refx!mania",
+            4: "+shaymi!std",
+            5: "+shaymi!taiko",
+            6: "+shaymi!catch",
+            7: "+shaymi!mania",
+            8: "+ap!std"
+        }
         
-        return int2mode.get(mode_id, "vn!std")
+        return int2mode.get(mode_id, "+refx!std")
     
 class Mods(Enum):
     NOMOD = 0

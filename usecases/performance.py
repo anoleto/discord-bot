@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import TypedDict
 
 # placeholder
-from akatsuki_pp_py import Beatmap
-from akatsuki_pp_py import Calculator
+from refx_pp_py import Beatmap
+from refx_pp_py import Calculator
 
 from utils.OsuMapping import Mods
 
@@ -15,15 +15,24 @@ from utils.OsuMapping import Mods
 @dataclass
 class ScoreParams:
     mode: int
+
     mods: int | None = None
     combo: int | None = None
     acc: float | None = None
+
     n300: int | None = None
     n100: int | None = None
     n50: int | None = None
     ngeki: int | None = None
     nkatu: int | None = None
     nmiss: int | None = None
+
+    # NOTE: only for refx
+    AC: int | None = None
+    AR: float | None = None
+    TW: int | None = None
+    CS: bool | None = None
+    HD: bool | None = None
 
 class Performance(TypedDict):
     pp: float
@@ -68,7 +77,7 @@ def calculate_performances(osu_file_path: str, scores: Iterable[ScoreParams]) ->
                 score.mods |= Mods.DOUBLETIME.value
 
         calculator = Calculator(
-            mode=score.mode,
+            mode=score.mode % 4,
             mods=score.mods or 0,
             combo=score.combo,
             acc=score.acc,
@@ -78,7 +87,22 @@ def calculate_performances(osu_file_path: str, scores: Iterable[ScoreParams]) ->
             n_geki=score.ngeki,
             n_katu=score.nkatu,
             n_misses=score.nmiss,
+            # NOTE: for refx
+            shaymi_mode=True if score.mode > 3 else False
         )
+        
+        # NOTE: for refx
+        if score.mode > 3:
+            calculator.cheat_ac(0 if score.AC is None or score.AC < 1 else score.AC)
+            calculator.cheat_arc(score.AR if score.AR is not None else 0)
+            calculator.cheat_tw(int(150 if score.TW < 1 else score.TW))
+            calculator.cheat_cs(bool(score.CS))
+            calculator.cheat_hdr(bool(score.HD))
+        else:
+            calculator.cheat_ac(0 if score.AC is None or score.AC < 1 else score.AC)
+            calculator.cheat_arc(score.AR if score.AR is not None else 0)
+            calculator.cheat_hdr(bool(score.HD))
+
         result = calculator.performance(calc_)
 
         pp = result.pp

@@ -52,7 +52,22 @@ class ScoreUtils:
     def fmt_score_details(score: Dict, beatmap: Dict, calc: MapCalculation) -> Dict[str, str]:
         """format score details into readable strings."""
         fcstr = f" ({calc.pp_if_fc}pp if FC)" if round(score['pp'], 2) != calc.pp_if_fc else ""
-        
+
+        if score['mode'] > 3:
+            cheatvalue = (
+                f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
+                f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
+                f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}\n"
+                f"▸ Timewarp: {score['twval'] if score['tw'] > 0 else 'Not used'} "
+                f"▸ CS Changer: {'Yes' if score['cs'] > 0 else 'Not used'}"
+            )
+        else:
+            cheatvalue = (
+                f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
+                f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
+                f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}"
+            )
+
         return {
             'title': f"{beatmap['artist']} - {beatmap['title']} [{beatmap['version']}]",
             'pp_display': f"{round(score['pp'], 2)}pp{fcstr}",
@@ -61,7 +76,8 @@ class ScoreUtils:
             'hits': f"[{score['n300']}/{score['n100']}/{score['n50']}/{score['nmiss']}]",
             'score_display': f"{score['score']:,}",
             'mods': score['mods_readable'],
-            'stars': f"{calc.stars}★"
+            'stars': f"{calc.stars}★",
+            'cheatval': cheatvalue
         }
 
     @staticmethod
@@ -95,11 +111,18 @@ class BeatmapCalculator:
         beatmap_path = await self.download_map(beatmap['id'], beatmap['md5'])
         
         score_params = ScoreParams(
-            mode=score['mode'] % 4,
+            mode=score['mode'],
             mods=score['mods'],
             combo=beatmap['max_combo'],
             nmiss=0,
-            acc=score['acc']
+            acc=score['acc'],
+
+            # NOTE: for refx
+            AC=score['aim_value'],
+            AR=score['ar_value'],
+            TW=score['twval'],
+            CS=score['cs'],
+            HD=score['hdr']
         )
         
         calc = calculate_performances(beatmap_path, [score_params])[0]
@@ -127,6 +150,7 @@ class ScoreEmbed:
                 f"▸ {grade_emojis.get(score['grade'], score['grade'])} "
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
+                f"{details['cheatval']}" # NOTE: only for refx
             ),
             color=0x2ECC71 if score['grade'] != 'F' else 0xE74C3C
         )
@@ -165,6 +189,7 @@ class ScoreEmbed:
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
+                f"{details['cheatval']}" # NOTE: only for refx
                 f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})"
             )
             

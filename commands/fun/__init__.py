@@ -1,13 +1,12 @@
 from typing import List
 
-# NOTE: only has poll for now
 available_commands: List[str] = [
-    'poll'
+    'wordbomb'
 ]
 
-from .poll import Poll
+from .wordbomb import WordBomb
 
 __all__ = [
-    'Poll',
+    'WordBomb',
     'available_commands'
 ]

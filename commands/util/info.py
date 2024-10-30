@@ -37,7 +37,7 @@ class Info(commands.Cog):
             "kselon my favorite femboy\n"
             "my old discord bot rewritten in python\n\n"
             f"online for: {h}h {m}m {s}s\n"
-            f"started at: <t:{int(self.bot.startup_time.timestamp())}:R>\n\n"
+            f"started at: <t:{int(self.bot.startup_time.timestamp())}:F>\n\n"
             f"memory usage: {memory_usage:.2f} MB\n"
         )
 

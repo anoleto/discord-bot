@@ -24,7 +24,7 @@ class Help(commands.HelpCommand):
         # mode args
         help_text += (
             "\nmode args: vn!std, vn!taiko, vn!mania, vn!ctb | rx!std, rx!taiko, rx!ctb, rx!mania (only for refx) | ap!std"
-            "\nargs accepts change *vn* to *refx* or *rx* to *shaymi*" # NOTE: fix grammar??
+            "\nargs accepts *vn* to *refx* or *rx* to *shaymi*" # NOTE: fix grammar??
             )
 
         await self.send_help_message(self.context, help_text)
@@ -38,5 +38,6 @@ class Help(commands.HelpCommand):
 
     async def send_command_help(self, command: commands.Command) -> None:
         help_text = f"**{command.name}**\n{command.help}\n"
-        help_text += f"**usage:** {self.get_command_signature(command)}"
+        if command.aliases:
+            help_text += f"**aliases:** {command.aliases}"
         await self.send_help_message(self.context, help_text)

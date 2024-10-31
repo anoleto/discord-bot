@@ -37,7 +37,7 @@ class Bot(commands.Bot):
         log("starting bot setup...", Ansi.CYAN)
         
         await self.load_extensions()
-        log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.BLUE)
+        log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.CYAN)
         log("bot is ready!", Ansi.GREEN)
 
         self.check_db_connection.start()
@@ -70,7 +70,7 @@ class Bot(commands.Bot):
         await ctx.send(f"an error occurred: {str(error)}")
 
     async def on_message(self,  message: discord.Message) -> None:
-        """lower the message"""
+        """lower the message""" # TODO: regex for beatmaps
         if message.author == self.user:
             return
 

@@ -35,7 +35,7 @@ class Info(commands.Cog):
 
         info = (
             "kselon my favorite femboy\n"
-            "my old discord bot rewritten in python\n\n"
+            "my old discord bot rewritten in [python](https://www.python.org/)\n\n"
             f"online for: {h}h {m}m {s}s\n"
             f"started at: <t:{int(self.bot.startup_time.timestamp())}:F>\n\n"
             f"memory usage: {memory_usage:.2f} MB\n"
@@ -51,7 +51,9 @@ class Info(commands.Cog):
         info += (
             f"\nservers: {len(ctx.bot.guilds)}\n"
             f"beatmaps cached: {len([file for file in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, file))])}\n"
-            f"bot latency: {round(self.bot.latency * 1000, 2)}ms"
+            f"bot latency: {round(self.bot.latency * 1000, 2)}ms\n"
+            f"discord.py version: [{discord.__version__}](https://github.com/Rapptz/discord.py)\n"
+            f"total shards: {self.bot.shard_count}"
         )
 
         info += "\n\n**[source code](https://github.com/anoleto/discord-bot)**\n"

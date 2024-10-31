@@ -87,9 +87,12 @@ class General(commands.Cog):
                     user = ctx.guild.get_member(user_id)
         
         author = ctx.message.author
+
         if not user:
             user = author
+            
         roles = [x.name for x in user.roles if x.name != "@everyone"]
+
         if not roles: roles = ["None"]
         data = f"{str(user)}'s avatar: \n"
 

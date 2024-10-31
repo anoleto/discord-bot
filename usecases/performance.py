@@ -1,3 +1,6 @@
+# TODO: use osu-tools or rosu instead of akatsuki-pp-py
+#       maybe add calculate_pp request too and finally use config.TOKEN?
+
 from __future__ import annotations
 
 import math

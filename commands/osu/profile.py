@@ -78,15 +78,16 @@ class Profile(commands.Cog):
                 f"#{player_stats['country_rank']})\n"
                 f"**playcount:** {player_stats['plays']:,}\n"
                 f"**playtime:** {playtime}\n"
-                f"**grades:** <:rank_x:1278891650520842362> {player_stats['xh_count']} <:grade_ssh:1251961164225581207> {player_stats['x_count']} "
-                f"<:grade_sh:1251961168763945102> {player_stats['sh_count']} <:grade_s:1251961171335188551> {player_stats['s_count']} <:grade_a:1239381666552877056> {player_stats['a_count']}"
+                f"**grades:** <:rank_x:1278891650520842362> {player_stats['xh_count']} | <:grade_ssh:1251961164225581207> {player_stats['x_count']}"
+                f" | <:grade_sh:1251961168763945102> {player_stats['sh_count']} | <:grade_s:1251961171335188551> {player_stats['s_count']} | <:grade_a:1239381666552877056> {player_stats['a_count']}"
             ), inline=False)
 
             embed.add_field(name="general Info", value=(
                 f"**account created:** <t:{creation_time}:R>\n"
                 f"**last seen:** <t:{latest_activity}:R>"
             ), inline=False)
-
+            
+            embed.set_image(url=f"https://{self.server}/banners/{player_info['id']}")
             await ctx.send(embed=embed)
 
         except httpx.HTTPStatusError as e:

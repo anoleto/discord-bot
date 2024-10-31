@@ -73,6 +73,10 @@ class Bot(commands.Bot):
         """lower the message""" # TODO: regex for beatmaps
         if message.author == self.user:
             return
+        
+        if message.content.startswith('!eval') or message.content.startswith('!py'):
+            await self.process_commands(message)
+            return
 
         message.content = message.content.lower()
         await self.process_commands(message)

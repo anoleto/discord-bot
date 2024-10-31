@@ -52,21 +52,31 @@ class ScoreUtils:
     def fmt_score_details(score: Dict, beatmap: Dict, calc: MapCalculation) -> Dict[str, str]:
         """format score details into readable strings."""
         fcstr = f" ({calc.pp_if_fc}pp if FC)" if round(score['pp'], 2) != calc.pp_if_fc else ""
+        modstr = "+"
+        cheatvalue = None
 
-        if score['mode'] > 3:
-            cheatvalue = (
-                f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
-                f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
-                f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}\n"
-                f"▸ Timewarp: {score['twval'] if score['tw'] > 0 else 'Not used'} "
-                f"▸ CS Changer: {'Yes' if score['cs'] > 0 else 'Not used'}"
-            )
-        else:
-            cheatvalue = (
-                f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
-                f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
-                f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}"
-            )
+        # XXX: remove DT if theres NC
+        modstr += score['mods_readable'].replace('DT', '') if 'NC' in score['mods_readable'] else score['mods_readable']
+
+        # NOTE: scorev2 shouldnt have cheatvalue since they are playing on stable
+        if 'V2' not in modstr:
+            if score['mode'] > 3:
+                cheatvalue = (
+                    f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
+                    f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
+                    f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}\n"
+                    f"▸ Timewarp: {score['twval'] if score['tw'] > 0 else 'Not used'} "
+                    f"▸ CS Changer: {'Yes' if score['cs'] > 0 else 'Not used'}"
+                )
+            else:
+                cheatvalue = (
+                    f"▸ AC: {score['aim_value'] if score['aim'] > 0 else 'Not used'} "
+                    f"▸ AR Changer: {score['ar_value'] if score['arc'] > 0 else 'Not used'} "
+                    f"▸ HD Remover: {'Yes' if score['hdr'] > 0 else 'Not used'}"
+                )
+
+        # play_time
+        unix_playtime = datetime.fromisoformat(score['play_time']).timestamp()
 
         return {
             'title': f"{beatmap['artist']} - {beatmap['title']} [{beatmap['version']}]",
@@ -75,9 +85,10 @@ class ScoreUtils:
             'combo': f"{score['max_combo']}x/{beatmap['max_combo']}x",
             'hits': f"[{score['n300']}/{score['n100']}/{score['n50']}/{score['nmiss']}]",
             'score_display': f"{score['score']:,}",
-            'mods': score['mods_readable'],
+            'mods': modstr,
             'stars': f"{calc.stars}★",
-            'cheatval': cheatvalue
+            'cheatval': cheatvalue if cheatvalue is not None else "",
+            'scoreset': f"<t:{int(unix_playtime)}:R>"
         }
 
     @staticmethod
@@ -150,6 +161,7 @@ class ScoreEmbed:
                 f"▸ {grade_emojis.get(score['grade'], score['grade'])} "
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
+                f"▸ score set: {details['scoreset']}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
             ),
             color=0x2ECC71 if score['grade'] != 'F' else 0xE74C3C
@@ -189,6 +201,7 @@ class ScoreEmbed:
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
+                f"▸ score set: {details['scoreset']}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
                 f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
             )

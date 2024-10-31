@@ -46,6 +46,19 @@ class ApiClient:
         }
 
         return await self._get("get_player_info", {k: v for k, v in params.items() if v is not None})
+    
+    async def get_map_scores(self, scope: str, user_id: Optional[int] = None,
+                                 username: Optional[str] = None, mods_arg: Optional[str] = None,
+                                 mode_arg: Optional[int] = None) -> dict:
+        params = {
+            "name": username,
+            "id": user_id,
+            "mods": mods_arg,
+            "mode": mode_arg,
+            "scope": scope # recent | best
+        }
+        
+        return await self._get("get_map_scores", {k: v for k, v in params.items() if v is not None})
                 
     async def close(self):
         await self.client.aclose()

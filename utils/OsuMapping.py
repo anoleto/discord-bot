@@ -131,6 +131,7 @@ modstr2mod_dict = {
     "8K": Mods.KEY8,
     "9K": Mods.KEY9,
     "CO": Mods.KEYCOOP,
+    "NM": Mods.NOMOD
 }
 
 grade_emojis = {

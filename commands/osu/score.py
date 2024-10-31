@@ -18,7 +18,7 @@ from utils.logging import log, Ansi
 from utils.OsuMapping import Mode, grade_emojis
 from utils.args import ArgParsing
 
-from usecases.performance import calculate_performances, ScoreParams
+from usecases.performance import calculate_performances, ScoreParams, calculate_osu_tools
 
 if TYPE_CHECKING:
     from main import Bot
@@ -45,6 +45,7 @@ class MapCalculation(NamedTuple):
     pp: float
     stars: float
     pp_if_fc: float
+    #pp_bancho: float
 
 # --- Helper Functions ---
 class ScoreUtils:
@@ -80,7 +81,7 @@ class ScoreUtils:
 
         return {
             'title': f"{beatmap['artist']} - {beatmap['title']} [{beatmap['version']}]",
-            'pp_display': f"{round(score['pp'], 2)}pp{fcstr}",
+            'pp_display': f"{round(score['pp'], 2)}pp{fcstr}", # (bancho: {calc.pp_bancho}pp)
             'accuracy': f"{float(score['acc']):.2f}%",
             'combo': f"{score['max_combo']}x/{beatmap['max_combo']}x",
             'hits': f"[{score['n300']}/{score['n100']}/{score['n50']}/{score['nmiss']}]",
@@ -137,11 +138,13 @@ class BeatmapCalculator:
         )
         
         calc = calculate_performances(beatmap_path, [score_params])[0]
+        #bancho_calc = calculate_osu_tools(beatmap_path, [score_params], "/home/ano/discord-bot/osu-tools")[0] # god..
         
         return MapCalculation(
             pp=round(score['pp'], 2),
             stars=round(float(calc['difficulty']['stars']), 2),
-            pp_if_fc=round(calc['performance']['pp'], 2)
+            pp_if_fc=round(calc['performance']['pp'], 2),
+            #pp_bancho=round(bancho_calc['performance']['pp'], 2)
         )
 
 # --- Score Embed ---

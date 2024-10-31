@@ -4,15 +4,22 @@
 from __future__ import annotations
 
 import math
+import re
+import orjson
+import subprocess
+import os
+
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TypedDict
+from typing import TypedDict, Iterable, Dict, Any, Optional
+from utils.logging import log, Ansi
+from pathlib import Path
 
 # placeholder
 from refx_pp_py import Beatmap
 from refx_pp_py import Calculator
 
-from utils.OsuMapping import Mods
+from utils.OsuMapping import Mods, modstr2mod_dict
 
 
 @dataclass
@@ -141,4 +148,156 @@ def calculate_performances(osu_file_path: str, scores: Iterable[ScoreParams]) ->
             },
         )
 
+    return results
+
+# --- osu-tools ---
+# NOTE: just an attempt, tee-hee
+#       THIS IS VERY SLOW, DONT USE
+#       need some fixes too, ima sleep
+def verify_paths(osu_tools_path: str) -> bool:
+    calculator_path = Path(osu_tools_path) / "PerformanceCalculator" / "bin" / "Release" / "net8.0" / "PerformanceCalculator.dll"
+    
+    # XXX: check if dotnet is installed
+    try:
+        subprocess.run(['dotnet', '--version'], capture_output=True, check=True)
+    except (subprocess.SubprocessError, FileNotFoundError):
+        log("dotnet is not installed or not in PATH", Ansi.YELLOW)
+        return False
+        
+    if not calculator_path.exists():
+        log(f"PerformanceCalculator not found at: {calculator_path}", Ansi.YELLOW)
+        return False
+        
+    return True
+
+def calculate_osu_tools(osu_file_path: str, scores: Iterable[ScoreParams], osu_tools_base_path: str = '../osu-tools') -> list[Dict[str, Any]]:
+    """
+    Calculate performance using osu-tools
+    
+    args:
+        osu_file_path: path to the .osu file
+        scores: iterable of ScoreParams objects
+        osu_tools_base_path: base path to osu-tools directory
+    
+    returns:
+        list of performance results
+    """
+    if not verify_paths(osu_tools_base_path):
+        raise EnvironmentError("Required paths or executables not found")
+
+    if not os.path.exists(osu_file_path):
+        raise FileNotFoundError(f"Beatmap file not found: {osu_file_path}")
+
+    calculator_path = os.path.join(
+        osu_tools_base_path,
+        "PerformanceCalculator/bin/Release/net8.0/PerformanceCalculator.dll"
+    )
+    
+    results: list[Dict[str, Any]] = []
+    
+    for score in scores:
+        try:
+            cmd = [
+                'dotnet',
+                calculator_path,
+                'simulate',
+                str(score.mode),
+                osu_file_path
+            ]
+            
+            if score.n50 is not None:
+                cmd.extend(['-M', str(score.n50)])
+            
+            if score.mode == 3:  # mania
+                if score.combo is not None:
+                    cmd.extend(['-s', str(score.combo)])
+            else:
+                if score.combo is not None:
+                    cmd.extend(['-c', str(score.combo)])
+                if score.nmiss is not None:
+                    cmd.extend(['-X', str(score.nmiss)])
+            
+            if score.mode not in [2, 3] and score.n100 is not None:  # not catch or mania
+                cmd.extend(['-G', str(score.n100)])
+            
+            if score.acc is not None:
+                cmd.extend(['-a', str(score.acc)])
+            
+            if score.mods is not None:
+                for mod_str, mod_value in modstr2mod_dict.items():
+                    if score.mods & mod_value.value and mod_str not in {"NM", "V2"}:
+                        cmd.extend(['-m', mod_str])
+            
+            cmd.append('-j')
+
+            # for diff
+            try:
+                calc_output = subprocess.run(
+                    cmd,
+                    text=True,
+                    capture_output=True,
+                    check=True
+                )
+                calc_result = orjson.loads(calc_output.stdout)
+                
+                diff_cmd = [
+                    'dotnet',
+                    calculator_path,
+                    'difficulty',
+                    osu_file_path,
+                    f'--ruleset:{score.mode}'
+                ]
+                
+                if score.mods is not None:
+                    for mod_str, mod_value in modstr2mod_dict.items():
+                        if score.mods & mod_value.value and mod_str not in {"NM", "V2"}:
+                            diff_cmd.extend(['-m', mod_str])
+                
+                diff_output = subprocess.run(
+                    diff_cmd,
+                    text=True,
+                    capture_output=True,
+                    check=True
+                )
+                
+                sr_match = re.findall(r'\d+(?:\.\d+)?', diff_output.stdout)
+                sr = float(sr_match[-1]) if sr_match else 0.0
+                
+                results.append({
+                    "performance": {
+                        "pp": calc_result.get('pp', 0.0),
+                        "pp_acc": None,
+                        "pp_aim": None,
+                        "pp_speed": None,
+                        "pp_flashlight": None,
+                        "effective_miss_count": None,
+                        "pp_difficulty": None,
+                    },
+                    "difficulty": {
+                        "stars": sr,
+                        "aim": None,
+                        "speed": None,
+                        "flashlight": None,
+                        "slider_factor": None,
+                        "speed_note_count": None,
+                        "stamina": None,
+                        "color": None,
+                        "rhythm": None,
+                        "peak": None,
+                    },
+                })
+                
+            except subprocess.CalledProcessError as e:
+                log(f"command failed: {e.cmd}")
+                log(f"output: {e.output}")
+                log(f"return code: {e.returncode}")
+                raise
+                
+        except Exception as e:
+            log(f"error calculating performance for score: {e}", Ansi.RED)
+            results.append({
+                "performance": {"pp": 0.0},
+                "difficulty": {"stars": 0.0}
+            })
+    
     return results

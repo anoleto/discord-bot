@@ -34,17 +34,18 @@ class ArgParsing:
                 return None, None
         else:
             if args:
-                arg_parts = args.split()
-                if arg_parts[0].startswith('+'):
-                    modes = arg_parts[0][1:]
-                    mode = self.mode.from_string(modes)
-                    if len(arg_parts) > 1:
-                        username = arg_parts[1]
+                if args.startswith('+'):
+                    parts = args[1:].split(None, 1)
+                    mode = self.mode.from_string(parts[0])
+                    if len(parts) > 1:
+                        username = parts[1].strip()
                 else:
-                    username = arg_parts[0]
-                    if len(arg_parts) > 1:
-                        modes = arg_parts[1]
-                        mode = self.mode.from_string(modes)
+                    parts = args.split('+')
+                    if len(parts) > 1:
+                        username = parts[0].strip()
+                        mode = self.mode.from_string(parts[1].strip())
+                    else:
+                        username = args.strip()
 
             if not username:
                 result = await glob.db.fetch('select name, mode from users where id = %s', [user_id])

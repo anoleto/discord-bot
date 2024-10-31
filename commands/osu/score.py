@@ -156,7 +156,7 @@ class ScoreEmbed:
         )
         
         if score['grade'] != 'F':
-            embed.description += f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
+            embed.description += f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
         
         embed.set_author(
             name=f"{details['title']} {details['mods']} [{details['stars']}]",
@@ -190,7 +190,7 @@ class ScoreEmbed:
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
-                f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
+                f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
             )
             
             embed.add_field(

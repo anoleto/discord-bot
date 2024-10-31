@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import config
 import random
 import os
+import sys
 
 if TYPE_CHECKING:
     from main import Bot
@@ -53,6 +54,7 @@ class Info(commands.Cog):
             f"beatmaps cached: {len([file for file in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, file))])}\n"
             f"bot latency: {round(self.bot.latency * 1000, 2)}ms\n"
             f"discord.py version: [{discord.__version__}](https://github.com/Rapptz/discord.py)\n"
+            f"python version: [{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}](https://www.python.org/)\n"
             f"total shards: {self.bot.shard_count}"
         )
 

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import discord
+import random
+import config
+
 from discord.ext import commands
 
 class Help(commands.HelpCommand):
     """some more cleaner help command maybe?"""
     async def send_help_message(self, ctx: commands.Context, help_text: str) -> None:
-        embed = discord.Embed(title="help", description=help_text, color=discord.Color.random())
+        embed = discord.Embed(title="help", description=help_text, color=discord.Color.random(), url=random.choice(config.ownercheckmotd))
+        embed.set_thumbnail(url=ctx.bot.user.avatar)
         await ctx.send(embed=embed)
 
     async def send_bot_help(self, mapping: dict) -> None:

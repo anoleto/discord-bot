@@ -50,7 +50,8 @@ class Bot(commands.Bot):
                     if filename.endswith('.py') and not filename.startswith('__'):
                         try:
                             await self.load_extension(f'commands.{category}.{filename[:-3]}')
-                            log(f'loaded command: {category}.{filename}', Ansi.GREEN)
+                            if config.DEBUG:
+                                log(f'loaded command: {category}.{filename}', Ansi.GREEN)
                         except Exception as e:
                             log(f'failed to load {filename}: {e}', Ansi.RED)
 

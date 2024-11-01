@@ -158,13 +158,14 @@ class ScoreEmbed:
         beatmap = score['beatmap']
         calc = await self.calculator.calculate_map_stats(score, beatmap)
         details = ScoreUtils.fmt_score_details(score, beatmap, calc)
+        scoreset = f"▸ score set: {details['scoreset']}" if score['grade'] != 'F' else ''
         
         embed = discord.Embed(
             description=(
                 f"▸ {grade_emojis.get(score['grade'], score['grade'])} "
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
-                f"▸ score set: {details['scoreset']}\n"
+                f"{scoreset}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
             ),
             color=0x2ECC71 if score['grade'] != 'F' else 0xE74C3C
@@ -198,13 +199,14 @@ class ScoreEmbed:
             beatmap = score['beatmap']
             calc = await self.calculator.calculate_map_stats(score, beatmap)
             details = ScoreUtils.fmt_score_details(score, beatmap, calc)
+            scoreset = f"▸ score set: {details['scoreset']}" if score['grade'] != 'F' else ''
             
             value = (
                 f"▸ {grade_emojis.get(score['grade'], score['grade'])} "
                 f"▸ **{details['pp_display']}** ▸ {details['accuracy']}\n"
                 f"▸ {details['score_display']} ▸ {details['combo']} ▸ {details['hits']}\n"
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
-                f"▸ score set: {details['scoreset']}\n"
+                f"{scoreset}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
                 f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
             )

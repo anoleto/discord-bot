@@ -8,10 +8,11 @@ import re
 import orjson
 import subprocess
 import os
+import config
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TypedDict, Iterable, Dict, Any, Optional
+from typing import TypedDict, Iterable, Dict, Any, Tuple
 from utils.logging import log, Ansi
 from pathlib import Path
 
@@ -170,6 +171,32 @@ def verify_paths(osu_tools_path: str) -> bool:
         
     return True
 
+def parse_performance_output(output: str) -> Tuple[float, Dict[str, float]]:
+    """for simulate"""
+    performance = {
+        "star_rating": 0.0,
+        "max_combo": 0.0
+    }
+    
+    pp_value = 0.0
+
+    patterns = {
+        "pp": r"pp\s+:\s*([\d,]+\.?\d*)",
+        "star_rating": r"star rating\s+:\s*([\d,]+\.?\d*)",
+        "max_combo": r"max combo\s+:\s*([\d,]+\.?\d*)",
+    }
+    
+    for key, pattern in patterns.items():
+        match = re.search(pattern, output)
+        if match:
+            value = match.group(1).replace(",", "")
+            if key == "pp":
+                pp_value = float(value)
+            else:
+                performance[key] = float(value)
+    
+    return pp_value, performance
+
 def calculate_osu_tools(osu_file_path: str, scores: Iterable[ScoreParams], osu_tools_base_path: str = '../osu-tools') -> list[Dict[str, Any]]:
     """
     Calculate performance using osu-tools
@@ -194,21 +221,29 @@ def calculate_osu_tools(osu_file_path: str, scores: Iterable[ScoreParams], osu_t
     )
     
     results: list[Dict[str, Any]] = []
-    
+
+    # TODO: dont make the mod mapping here??
+    mode_mapping = {
+        0: "osu",
+        1: "taiko",
+        2: "catch",
+        3: "mania"
+    }
+
     for score in scores:
         try:
             cmd = [
                 'dotnet',
                 calculator_path,
                 'simulate',
-                str(score.mode),
+                mode_mapping.get(score.mode, 'osu'),
                 osu_file_path
             ]
             
             if score.n50 is not None:
                 cmd.extend(['-M', str(score.n50)])
             
-            if score.mode == 3:  # mania
+            if score.mode == 3:
                 if score.combo is not None:
                     cmd.extend(['-s', str(score.combo)])
             else:
@@ -217,7 +252,7 @@ def calculate_osu_tools(osu_file_path: str, scores: Iterable[ScoreParams], osu_t
                 if score.nmiss is not None:
                     cmd.extend(['-X', str(score.nmiss)])
             
-            if score.mode not in [2, 3] and score.n100 is not None:  # not catch or mania
+            if score.mode not in [2, 3] and score.n100 is not None:
                 cmd.extend(['-G', str(score.n100)])
             
             if score.acc is not None:
@@ -225,72 +260,41 @@ def calculate_osu_tools(osu_file_path: str, scores: Iterable[ScoreParams], osu_t
             
             if score.mods is not None:
                 for mod_str, mod_value in modstr2mod_dict.items():
-                    if score.mods & mod_value.value and mod_str not in {"NM", "V2"}:
+                    # XXX: remove nc because dt is always active if nc is active
+                    if score.mods & mod_value.value and mod_str not in {"NM", "V2", "NC"}:
                         cmd.extend(['-m', mod_str])
             
-            cmd.append('-j')
-
-            # for diff
             try:
-                calc_output = subprocess.run(
+                calc_process = subprocess.run(
                     cmd,
                     text=True,
                     capture_output=True,
                     check=True
                 )
-                calc_result = orjson.loads(calc_output.stdout)
+                if config.DEBUG:
+                    log(f"Running command: {' '.join(cmd)}")
+                    log(f"Stdout: {calc_process.stdout}")
                 
-                diff_cmd = [
-                    'dotnet',
-                    calculator_path,
-                    'difficulty',
-                    osu_file_path,
-                    f'--ruleset:{score.mode}'
-                ]
+                if calc_process.stderr and config.DEBUG:
+                    log(f"performance calculator stderr: {calc_process.stderr}")
                 
-                if score.mods is not None:
-                    for mod_str, mod_value in modstr2mod_dict.items():
-                        if score.mods & mod_value.value and mod_str not in {"NM", "V2"}:
-                            diff_cmd.extend(['-m', mod_str])
-                
-                diff_output = subprocess.run(
-                    diff_cmd,
-                    text=True,
-                    capture_output=True,
-                    check=True
-                )
-                
-                sr_match = re.findall(r'\d+(?:\.\d+)?', diff_output.stdout)
-                sr = float(sr_match[-1]) if sr_match else 0.0
+                pp_value, performance_attrs = parse_performance_output(calc_process.stdout)
                 
                 results.append({
                     "performance": {
-                        "pp": calc_result.get('pp', 0.0),
-                        "pp_acc": None,
-                        "pp_aim": None,
-                        "pp_speed": None,
-                        "pp_flashlight": None,
-                        "effective_miss_count": None,
-                        "pp_difficulty": None,
+                        "pp": pp_value
                     },
                     "difficulty": {
-                        "stars": sr,
-                        "aim": None,
-                        "speed": None,
-                        "flashlight": None,
-                        "slider_factor": None,
-                        "speed_note_count": None,
-                        "stamina": None,
-                        "color": None,
-                        "rhythm": None,
-                        "peak": None,
+                        "stars": performance_attrs["star_rating"],
+                        "max_combo": performance_attrs["max_combo"]
                     },
                 })
                 
             except subprocess.CalledProcessError as e:
-                log(f"command failed: {e.cmd}")
-                log(f"output: {e.output}")
+                log(f"command failed: {' '.join(e.cmd)}")
                 log(f"return code: {e.returncode}")
+                log(f"stdout: {e.stdout}")
+                log(f"stderr: {e.stderr}")
                 raise
                 
         except Exception as e:

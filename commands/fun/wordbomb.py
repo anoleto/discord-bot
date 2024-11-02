@@ -119,6 +119,8 @@ class WordBomb(commands.Cog):
         when a player wins with a valid word, that word becomes the next target.
         time limit is in seconds.
 
+        i think this isnt even a wordbomb game, its a word race game :rofl:
+
         usages:
         - !wordbomb 32
         """

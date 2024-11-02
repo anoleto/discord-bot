@@ -16,7 +16,7 @@ class General(commands.Cog):
     @commands.command(
         name="userinfo",
         aliases=['user', 'ui'],
-        description="show an user's informaton"
+        description="show an user's information"
     )
     async def userinfo(self, ctx, *, user: Optional[discord.Member] = None) -> None:
         """

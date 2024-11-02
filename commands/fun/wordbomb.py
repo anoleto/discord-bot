@@ -108,8 +108,11 @@ class WordBomb(commands.Cog):
                     return True
 
         return False
-
-    @commands.command(name='wordbomb', aliases=['wb'], description='start a word bomb game that continues till the time runs out.')
+    
+    @commands.guild_only()
+    @commands.command(name='wordbomb', 
+                      aliases=['wb'], 
+                      description='start a word bomb game that continues till the time runs out.')
     async def wordbomb(self, ctx: commands.Context, time_limit: int = 60):
         """
         start a word bomb game that continues till the time runs out.

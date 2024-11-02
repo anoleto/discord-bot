@@ -172,7 +172,7 @@ class ScoreEmbed:
         )
         
         if score['grade'] != 'F':
-            embed.description += f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
+            embed.description += f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
         
         embed.set_author(
             name=f"{details['title']} {details['mods']} [{details['stars']}]",
@@ -208,7 +208,7 @@ class ScoreEmbed:
                 f"▸ {details['mods']} ▸ {details['stars']}\n"
                 f"{scoreset}\n"
                 f"{details['cheatval']}" # NOTE: only for refx
-                f" ▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
+                f"▸ [Replay](https://api.{self.server}/v1/get_play?id={score['id']})" # NOTE: should be get_replay if not refx
             )
             
             embed.add_field(
@@ -396,9 +396,9 @@ class Score(commands.Cog):
     async def top(self, ctx: commands.Context, *, args: str = None) -> None:
         """get player's top scores.
         command usage example: 
-        - !t `ano +ap!std`
-        - !t `+rx!std`
-        - !t `@nipa +vn!std`
+        - `!t ano +ap!std`
+        - `!t +rx!std`
+        - `!t @nipa +vn!std`
         """
         await self._handle_score_command(ctx, args, "best", 5)
 

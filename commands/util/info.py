@@ -66,6 +66,7 @@ class Info(commands.Cog):
         
         embed.set_footer(text="made by anolet")
         embed.set_image(url="https://assets.ppy.sh/beatmaps/2271393/covers/cover.jpg")
+        embed.set_thumbnail(url=self.bot.user.avatar)
         
         await ctx.send(embed=embed)
 

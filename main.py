@@ -39,11 +39,17 @@ class Bot(commands.Bot):
         log("starting bot setup...", Ansi.CYAN)
         
         await self.load_extensions()
+        self.check_db_connection.start()
+
+    async def on_ready(self):
+        ai_chat_cog = self.get_cog('AiChat')
+        if ai_chat_cog:
+            await ai_chat_cog.send_start_prompt()
+        
         log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.CYAN)
+        await self.tree.sync()
         log("bot is ready!", Ansi.GREEN)
 
-        self.check_db_connection.start()
-    
     async def load_extensions(self) -> None:
         for category in CATEGORIES:
             category_path = f'./commands/{category}'
@@ -79,11 +85,6 @@ class Bot(commands.Bot):
         
         if message.content.startswith('!eval') or message.content.startswith('!py'):
             await self.process_commands(message)
-            return
-
-        if bot.user in message.mentions and message.author != bot.user:
-            prefix = await self.prefix(bot, message)
-            await message.channel.send(f"Yo my prefix is `{prefix}`")
             return
 
         message.content = message.content.lower()

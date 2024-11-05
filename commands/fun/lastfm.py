@@ -61,7 +61,7 @@ class LastFM(commands.Cog):
             log(f"error fetching LastFM user info: {e}", Ansi.YELLOW)
             return None
 
-    @commands.command(name="nowplaying", aliases=["np"], description='show the currently playing track from LastFM')
+    @commands.command(name="nowplaying", aliases=["np", "lastfm"], description='show the currently playing track from LastFM')
     async def now_playing(self, ctx: commands.Context, username: str = None) -> None:
         """show the currently playing track from LastFM
         usage: !nowplaying

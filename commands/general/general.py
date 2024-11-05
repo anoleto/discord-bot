@@ -62,8 +62,8 @@ class General(commands.Cog):
         
         if user.avatar:
             name = str(user)
-            if user.nick:
-                name = f"{name} | {user.nick}"
+            if user.display_name:
+                name = f"{name} | {user.display_name}"
             embed.set_author(name=name, url=user.avatar.url)
             embed.set_thumbnail(url=user.avatar.url)
         else:

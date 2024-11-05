@@ -98,8 +98,8 @@ class AiChat(commands.Cog):
             return
         
         try:
-            if self.starting_prompt and config.starting_prompt_id:
-                channel = self.bot.get_channel(int(config.starting_prompt_id))
+            if self.starting_prompt:
+                channel = self.bot.get_channel(config.starting_prompt_id)
                 log(f"starting ai system prompt with size {len(self.starting_prompt)}", Ansi.CYAN)
 
                 response = await self.handle_response(self.starting_prompt)

@@ -30,5 +30,5 @@ lastfm = '' # https://www.last.fm/api/account/create
 
 # AIs
 use_start_prompt = True
-starting_prompt_id = '' # starting message channel id (can be None)
+starting_prompt_id = 0 # starting message channel id (can be None)
 MODEL = 'claude-3.5-sonnet' # default model

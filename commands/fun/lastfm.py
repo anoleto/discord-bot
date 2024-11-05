@@ -130,6 +130,11 @@ class SongPaginator(discord.ui.View):
             self.prev_page.disabled = True
             self.next_page.disabled = True
             self.last_page.disabled = True
+        else:
+            self.last_page.disabled = False
+
+        self.first_page.disabled = True
+        self.prev_page.disabled = True
 
     async def on_timeout(self) -> None:
         for item in self.children:
@@ -190,22 +195,34 @@ class SongPaginator(discord.ui.View):
     @discord.ui.button(label="≪", style=discord.ButtonStyle.grey)
     async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.current_page = 0
+        self.update_button_states()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label="←", style=discord.ButtonStyle.grey)
     async def prev_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page = max(0, self.current_page - 1)
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.update_button_states()
+            await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label="→", style=discord.ButtonStyle.grey)
     async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page = min(self.total_pages - 1, self.current_page + 1)
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        if self.current_page < self.total_pages - 1:
+            self.current_page += 1
+            self.update_button_states()
+            await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label="≫", style=discord.ButtonStyle.grey)
     async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.current_page = self.total_pages - 1
+        self.update_button_states()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    def update_button_states(self):
+        self.first_page.disabled = self.current_page == 0
+        self.prev_page.disabled = self.current_page == 0
+        self.next_page.disabled = self.current_page == self.total_pages - 1
+        self.last_page.disabled = self.current_page == self.total_pages - 1
     
 async def setup(bot: Bot) -> None:
     await bot.add_cog(LastFM(bot))

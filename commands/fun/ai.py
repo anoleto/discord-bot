@@ -57,6 +57,14 @@ class AiChat(commands.Cog):
         await ctx.defer()
         await self.message_queue.put((ctx, user_message))
 
+    @commands.command(name="resetai", description="resets the ai's brain")
+    async def chat(self, ctx: commands.Context) -> None:
+        """resets the ai's brain"""
+        await ctx.defer()
+        self.conversation_history = []
+        await self.send_start_prompt()
+        await ctx.send("DONE :rofl: :rofl: :rofl: :rofl:")
+
     async def send_message(self, ctx: commands.Context, user_message: str):
         author = ctx.author
         try:

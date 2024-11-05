@@ -50,6 +50,22 @@ class Bot(commands.Bot):
         await self.tree.sync()
         log("bot is ready!", Ansi.GREEN)
 
+        # --- for refx server ---
+
+        guild = bot.get_guild(1244035145519075348) # re;fx
+        role = guild.get_role(1267620469369081928) # Member
+
+        if guild and role:
+            for member in guild.members:
+                if role not in member.roles:
+                    try:
+                        await member.add_roles(role)
+                        log(f"added role to {member}", Ansi.CYAN)
+                    except Exception as e:
+                        log(f"failed to add role to {member}: {e}", Ansi.RED)
+
+        # ---                 ---
+
     async def load_extensions(self) -> None:
         for category in CATEGORIES:
             category_path = f'./commands/{category}'

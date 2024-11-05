@@ -103,8 +103,9 @@ class AiChat(commands.Cog):
                 log(f"starting ai system prompt with size {len(self.starting_prompt)}", Ansi.CYAN)
 
                 response = await self.handle_response(self.starting_prompt)
-                
-                await channel.send(f"{response}")
+
+                if channel is not None:
+                    await channel.send(response)
 
                 if config.DEBUG:
                     log(f"ai response: {response}", Ansi.GREEN)

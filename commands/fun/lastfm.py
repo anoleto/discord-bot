@@ -69,13 +69,6 @@ class LastFM(commands.Cog):
         
         paginator = SongPaginator(tracks, username)
         
-        if username in SongPaginator.active_sessions:
-            try:
-                old_message = SongPaginator.active_sessions[username]
-                await old_message.delete()
-            except (discord.NotFound, discord.Forbidden):
-                pass
-
         message = await ctx.send(embed=paginator.get_embed(), view=paginator)
         paginator.message = message
         SongPaginator.active_sessions[username] = message
@@ -131,8 +124,9 @@ class SongPaginator(discord.ui.View):
                 await self.message.edit(view=self)
             except:
                 pass
-
-        self.active_sessions.pop(self.username, None)
+            
+            if self.username in self.active_sessions:
+                del self.active_sessions[self.username]
 
     def get_embed(self) -> discord.Embed:
         track = self.tracks[self.current_page]

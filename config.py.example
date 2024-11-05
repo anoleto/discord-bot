@@ -25,3 +25,5 @@ ownercheckmotd = [
     "https://www.youtube.com/watch?v=U09UQ4TXNEQ",
     "https://youtu.be/766qmHTc2ro?si=Pjiq8VIjV22AJtdG"
 ]
+
+lastfm = '' # https://www.last.fm/api/account/create

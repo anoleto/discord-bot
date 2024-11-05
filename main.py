@@ -17,16 +17,18 @@ from objects import glob
 
 from commands import CATEGORIES
 from utils.help import Help
+from commands.guilds.prefix import get_prefix
 
 class Bot(commands.Bot):
     def __init__(self) -> None:
         self.config = config
+        self.prefix = get_prefix
         intents = discord.Intents.default() # init intents
         intents.message_content = True
         intents.guilds = True
         intents.members = True
         
-        super().__init__(command_prefix=self.config.PREFIX, 
+        super().__init__(command_prefix=self.prefix, 
                          intents=intents,
                          activity=discord.CustomActivity(name=self.config.Status),
                          help_command=Help())
@@ -78,6 +80,10 @@ class Bot(commands.Bot):
         if message.content.startswith('!eval') or message.content.startswith('!py'):
             await self.process_commands(message)
             return
+
+        if bot.user in message.mentions and message.author != bot.user:
+            prefix = await self.prefix(bot, message)
+            await message.channel.send(f"Yo my prefix is `{prefix}`")
 
         message.content = message.content.lower()
         await self.process_commands(message)

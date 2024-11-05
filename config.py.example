@@ -1,6 +1,6 @@
 TOKEN = ''
 DEBUG = False # NOTE: to logs all commands executed by user
-PREFIX = '!'
+
 OwnerID = 
 MainServerID =
 Status = 'tee-hee' # NOTE: bot status

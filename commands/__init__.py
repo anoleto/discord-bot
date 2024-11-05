@@ -4,5 +4,6 @@ CATEGORIES: List[str] = [
     'fun',
     'util',
     'osu',
-    'general'
+    'general',
+    'guilds'
 ]

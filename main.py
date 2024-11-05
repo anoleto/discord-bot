@@ -84,6 +84,7 @@ class Bot(commands.Bot):
         if bot.user in message.mentions and message.author != bot.user:
             prefix = await self.prefix(bot, message)
             await message.channel.send(f"Yo my prefix is `{prefix}`")
+            return
 
         message.content = message.content.lower()
         await self.process_commands(message)

@@ -35,7 +35,6 @@ class LastFM(commands.Cog):
             'user': username,
             'api_key': self.api_key,
             'format': 'json',
-            'limit': 25
         }
         
         try:

@@ -45,6 +45,22 @@ class LastFM(commands.Cog):
         except httpx.HTTPError as e:
             log(f"error fetching LastFM data: {e}", Ansi.YELLOW)
             return None
+        
+    async def fetch_user_info(self, username: str) -> Optional[dict]:
+        params = {
+            'method': 'user.getinfo',
+            'user': username,
+            'api_key': self.api_key,
+            'format': 'json'
+        }
+        
+        try:
+            response = await self.http_client.get(self.base_url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError as e:
+            log(f"error fetching LastFM user info: {e}", Ansi.YELLOW)
+            return None
 
     @commands.command(name="nowplaying", aliases=["np"], description='show the currently playing track from LastFM')
     async def now_playing(self, ctx: commands.Context, username: str = None) -> None:
@@ -60,14 +76,15 @@ class LastFM(commands.Cog):
             username = from_db['username']
 
         data = await self.fetch_lastfm_data(username)
-        
+        user = await self.fetch_user_info(username)
+
         if not data or 'recenttracks' not in data or not data['recenttracks']['track']:
             await ctx.send(f"couldn't find any recent tracks for user: {username}")
             return
             
         tracks = data['recenttracks']['track']
         
-        paginator = SongPaginator(tracks, username)
+        paginator = SongPaginator(tracks, username, user)
         
         message = await ctx.send(embed=paginator.get_embed(), view=paginator)
         paginator.message = message
@@ -99,7 +116,7 @@ class LastFM(commands.Cog):
 class SongPaginator(discord.ui.View):
     active_sessions: Dict[int, discord.Message] = {}
     
-    def __init__(self, tracks: List[dict], username: str):
+    def __init__(self, tracks: List[dict], username: str, user_info: str):
         super().__init__(timeout=60)
         self.tracks = tracks
         self.username = username
@@ -107,6 +124,7 @@ class SongPaginator(discord.ui.View):
         self.tracks_per_page = 1
         self.total_pages = math.ceil(len(tracks) / self.tracks_per_page)
         self.message: Optional[discord.Message] = None
+        self.userinfo = user_info
         
         if self.total_pages <= 1:
             self.first_page.disabled = True
@@ -132,6 +150,7 @@ class SongPaginator(discord.ui.View):
         track = self.tracks[self.current_page]
 
         now_playing = '@attr' in track and track['@attr'].get('nowplaying') == 'true'
+        total_scrobbles = self.userinfo.get('user', {}).get('playcount', 'unknown') if self.userinfo else 'unknown'
         
         embed = discord.Embed(
             title="Now Playing" if now_playing else "Recent Track",
@@ -166,7 +185,7 @@ class SongPaginator(discord.ui.View):
                     embed.set_thumbnail(url=img['#text'])
                     break
         
-        embed.set_footer(text=f"Track {self.current_page + 1}/{self.total_pages} • {self.username}")
+        embed.set_footer(text=f"Track {self.current_page + 1}/{self.total_pages} • {self.username} | total scrobbles {total_scrobbles}")
         return embed
 
     @discord.ui.button(label="≪", style=discord.ButtonStyle.grey)

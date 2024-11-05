@@ -58,7 +58,7 @@ class AiChat(commands.Cog):
         await self.message_queue.put((ctx, user_message))
 
     @commands.command(name="resetai", description="resets the ai's brain")
-    async def chat(self, ctx: commands.Context) -> None:
+    async def reset_chat(self, ctx: commands.Context) -> None:
         """resets the ai's brain"""
         await ctx.defer()
         self.conversation_history = []

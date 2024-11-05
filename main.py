@@ -39,6 +39,7 @@ class Bot(commands.Bot):
         log("starting bot setup...", Ansi.CYAN)
         
         await self.load_extensions()
+        await self.initialize_db()
         self.check_db_connection.start()
 
     async def on_ready(self):
@@ -105,9 +106,6 @@ class Bot(commands.Bot):
 
         message.content = message.content.lower()
         await self.process_commands(message)
-
-    async def on_connect(self) -> None:
-        await self.initialize_db()
 
     async def initialize_db(self) -> None:
         try:

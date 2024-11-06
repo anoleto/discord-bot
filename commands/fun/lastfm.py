@@ -69,7 +69,7 @@ class LastFM(commands.Cog):
         if not username:
             from_db = await glob.db.fetch('select username from lastfm where id = %s', [str(ctx.author.id)])
             if not from_db:
-                await ctx.send("you must provide an username!, set lastfm username: `!setlastfm <username>`")
+                await ctx.send("you must provide an username!, to set lastfm username: `!setlastfm <username>`")
                 return
             
             username = from_db['username']

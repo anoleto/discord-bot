@@ -66,6 +66,15 @@ class Bot(commands.Bot):
                         log(f"failed to add role to {member}: {e}", Ansi.RED)
 
         # ---                 ---
+    async def on_member_join(member):
+        # for refx server
+        role = member.guild.get_role(1267620469369081928)
+        if role:
+            try:
+                await member.add_roles(role)
+                log(f"added role to {member}", Ansi.CYAN)
+            except Exception as e:
+                log(f"failed to add role to {member}: {e}", Ansi.RED)
 
     async def load_extensions(self) -> None:
         for category in CATEGORIES:
@@ -76,14 +85,14 @@ class Bot(commands.Bot):
                         try:
                             await self.load_extension(f'commands.{category}.{filename[:-3]}')
                             if config.DEBUG:
-                                log(f'loaded command: {category}.{filename}', Ansi.GREEN)
+                                log(f'loaded cog: {category}.{filename}', Ansi.GREEN)
                         except Exception as e:
                             log(f'failed to load {filename}: {e}', Ansi.RED)
 
     async def on_command(self, ctx: commands.Context) -> None:
         """logs every command executed"""
         if self.config.DEBUG:
-            log(f"command executed: {ctx.command} by {ctx.author} in {ctx.guild}/{ctx.channel}", Ansi.YELLOW)
+            log(f"command executed: {ctx.command} ({ctx.message.content}) by {ctx.author} in {ctx.guild}/{ctx.channel}", Ansi.YELLOW)
 
     async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
         """global error handler"""

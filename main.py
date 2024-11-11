@@ -61,18 +61,20 @@ class Bot(commands.Bot):
                 if role not in member.roles:
                     try:
                         await member.add_roles(role)
-                        log(f"added role to {member}", Ansi.CYAN)
+                        if config.DEBUG:
+                            log(f"added role to {member}", Ansi.CYAN)
                     except Exception as e:
                         log(f"failed to add role to {member}: {e}", Ansi.RED)
 
         # ---                 ---
-    async def on_member_join(member):
+    async def on_member_join(self, member: discord.Member):
         # for refx server
         role = member.guild.get_role(1267620469369081928)
         if role:
             try:
                 await member.add_roles(role)
-                log(f"added role to {member}", Ansi.CYAN)
+                if config.DEBUG:
+                    log(f"added role to {member}", Ansi.CYAN)
             except Exception as e:
                 log(f"failed to add role to {member}: {e}", Ansi.RED)
 

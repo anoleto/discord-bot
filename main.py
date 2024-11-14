@@ -53,7 +53,7 @@ class Bot(commands.Bot):
 
         # --- for refx server ---
 
-        guild = bot.get_guild(1244035145519075348) # re;fx
+        guild = self.get_guild(1244035145519075348) # re;fx
         role = guild.get_role(1267620469369081928) # Member
 
         if guild and role:

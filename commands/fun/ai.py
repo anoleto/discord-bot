@@ -5,16 +5,20 @@ import discord
 import asyncio
 import config
 import re
+from collections import defaultdict
 
 from discord.ext import commands
 from asgiref.sync import sync_to_async
 from typing import TYPE_CHECKING
 from utils.logging import log, Ansi
+from datetime import datetime
 
 import g4f.debug
 from g4f.client import Client
 from g4f.stubs import ChatCompletion
 from g4f.Provider import Blackbox
+
+from utils.aiprompts import get_prompts
 
 g4f.debug.logging = config.DEBUG
 
@@ -26,7 +30,7 @@ class AiChat(commands.Cog):
         self.bot = bot
         self.chatBot = Client(provider=Blackbox)
         self.chatModel = config.MODEL
-        self.conversation_history = []
+        self.conversation_history = defaultdict(list)
         self.message_queue = asyncio.Queue()
         self.bot.loop.create_task(self.process_messages())
 
@@ -53,6 +57,10 @@ class AiChat(commands.Cog):
     async def chat(self, ctx: commands.Context, *, user_message: str) -> None:
         """chat with kselon! usage: `!chat hello kselon`"""
         await ctx.defer()
+        user_id = str(ctx.author.id)
+        if not self.conversation_history[user_id]:
+            await self.initialize_conversation(user_id)
+            
         attachment_content = await self._get_attachment_content(ctx.message.attachments[0] if ctx.message.attachments else None)
         await self.message_queue.put((ctx, user_message, attachment_content))
 
@@ -60,6 +68,11 @@ class AiChat(commands.Cog):
     async def chat_slash(self, interaction: discord.Interaction, message: str, attachment: discord.Attachment = None, ephemeral: bool = False) -> None:
         """chat with kselon! Usage: `/chat hello kselon`"""
         await interaction.response.defer(ephemeral=ephemeral)
+
+        user_id = str(interaction.user.id)
+        if not self.conversation_history[user_id]:
+            await self.initialize_conversation(user_id)
+            
         attachment_content = await self._get_attachment_content(attachment)
         await self.message_queue.put((interaction, message, attachment_content))
 
@@ -67,8 +80,9 @@ class AiChat(commands.Cog):
     async def reset_chat(self, ctx: commands.Context) -> None:
         """resets the ai's brain"""
         await ctx.defer()
-        self.conversation_history = []
-        await self.send_start_prompt()
+        user_id = str(ctx.author.id)
+        self.conversation_history[user_id] = []
+        await self.initialize_conversation(user_id)
         await ctx.send("DONE :rofl: :rofl: :rofl: :rofl:")
 
     async def _get_attachment_content(self, attachment):
@@ -77,12 +91,36 @@ class AiChat(commands.Cog):
             return attachment.filename, content
         return None
 
+    async def initialize_conversation(self, user_id: str) -> None:
+        if not config.use_start_prompt:
+            log('use start prompt is false, skipping start prompt.', Ansi.YELLOW)
+            return
+
+        try:
+            if self.starting_prompt:
+                log(f"initializing conversation for user {user_id} with system prompt", Ansi.CYAN)
+
+                self.conversation_history[user_id].append({
+                    'role': 'system',
+                    'content': self.starting_prompt
+                })
+                
+                response = await self.handle_response(user_id, "Hello")
+                
+                if config.DEBUG:
+                    log(f"response for user {user_id}: {response}", Ansi.GREEN)
+            else:
+                log("no starting prompt, skipping initialization.", Ansi.YELLOW)
+        except Exception as e:
+            log(f"error while initializing conversation: {e}", Ansi.RED)
+
     async def send_message(self, ctx: commands.Context | discord.Interaction, user_message: str, attachment_content: tuple | None):
         user = ctx.author if isinstance(ctx, commands.Context) else ctx.user
+        user_id = str(user.id)
         
         try:
             display_message, user_message_for_ai = self._prepare_message(user_message, attachment_content)
-            response = await self.handle_response(f'{user.name}: {user_message_for_ai}')
+            response = await self.handle_response(user_id, f'{user.name}: {user_message_for_ai}')
             response_content = f'> {user.name}: {display_message} \n{response}'
             await self.send_split_message(response_content, ctx)
         
@@ -93,49 +131,58 @@ class AiChat(commands.Cog):
         if attachment_content:
             filename, content = attachment_content
             display_message = f"{user_message} (file attached: {filename})"
-            user_message_for_ai = f"{user_message}\n{content.decode('utf-8')}"
+            user_message_for_ai = f"[{datetime.now().strftime('%d|%A|%B|%Y')}] {user_message}\n{content.decode('utf-8')}"
         else:
             display_message = user_message
-            user_message_for_ai = user_message
+            user_message_for_ai = f"[{datetime.now().strftime('%d|%A|%B|%Y')}] " + user_message
 
         return display_message, user_message_for_ai
 
-    async def handle_response(self, user_message: str) -> str:
-        self.conversation_history.append({'role': 'user', 'content': user_message})
-        if len(self.conversation_history) > 26:
-            del self.conversation_history[4:6]
+    async def handle_response(self, user_id: str, user_message: str) -> str:
+        self.conversation_history[user_id].append({'role': 'user', 'content': user_message})
+        if len(self.conversation_history[user_id]) > 26:
+            system_prompt = next((msg for msg in self.conversation_history[user_id] if msg['role'] == 'system'), None)
+            del self.conversation_history[user_id][4:6]
+            if system_prompt and system_prompt not in self.conversation_history[user_id]:
+                self.conversation_history[user_id].insert(0, system_prompt)
 
         async_create = sync_to_async(self.chatBot.chat.completions.create, thread_sensitive=True)
-        response: ChatCompletion = await async_create(model=self.chatModel, messages=self.conversation_history)
+        response: ChatCompletion = await async_create(model=self.chatModel, messages=self.conversation_history[user_id])
 
         bot_response = response.choices[0].message.content
         bot_response = re.sub(r"(?i)generated by blackbox\.ai,? try unlimited chat https://www\.blackbox\.ai/?", "", bot_response).strip()
 
-        self.conversation_history.append({'role': 'assistant', 'content': bot_response})
+        self.conversation_history[user_id].append({'role': 'assistant', 'content': bot_response})
         return bot_response
 
-    async def send_start_prompt(self):
-        if not config.use_start_prompt:
-            log('use start prompt is false, skipping start prompt.', Ansi.YELLOW)
-            return
+    @discord.app_commands.command(name="switchprompt", description="switches how kselon talks")
+    @discord.app_commands.choices(prompt=[
+        discord.app_commands.Choice(name="Beatrice", value="beako"), # i suppose
+        discord.app_commands.Choice(name="Kselon", value="ksl"), # femboy
+        discord.app_commands.Choice(name="Ano", value="ano"), # Me
+        discord.app_commands.Choice(name="Echidna", value="ech"), # ...
+    ])
+    async def prompts(self, interaction: discord.Interaction, prompt: discord.app_commands.Choice[str]):
+        await interaction.response.defer(thinking=True)
+        user_id = str(interaction.user.id)
+        p = prompt.value
+        self.conversation_history[user_id] = []
 
-        try:
-            if self.starting_prompt:
-                channel = self.bot.get_channel(config.starting_prompt_id)
-                log(f"starting ai system prompt with size {len(self.starting_prompt)}", Ansi.CYAN)
-
-                response = await self.handle_response(self.starting_prompt)
-
-                if channel:
-                    await channel.send(response)
-
+        prompt_content = get_prompts(p)
+        self.conversation_history[user_id].append({
+            'role': 'system',
+            'content': prompt_content
+        })
+        
+        response = await self.handle_response(user_id, "Hello")
+        await interaction.followup.send(f"switched to {p}!")
+        
+        if config.starting_prompt_id:
+            channel = self.bot.get_channel(config.starting_prompt_id)
+            if channel:
+                await channel.send(f"switched to prompt: {p}!")
                 if config.DEBUG:
-                    log(f"ai response: {response}", Ansi.GREEN)
-
-            else:
-                log("no starting prompt, skipping prompt.", Ansi.YELLOW)
-        except Exception as e:
-            log(f"error while sending system prompt: {e}", Ansi.RED)
+                    await channel.send(f"initial response: {response}")
 
     async def send_split_message(self, response: str, ctx: commands.Context | discord.Interaction, has_followed_up=False):
         char_limit = 1900

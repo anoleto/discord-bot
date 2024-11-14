@@ -43,10 +43,6 @@ class Bot(commands.Bot):
         self.check_db_connection.start()
 
     async def on_ready(self):
-        ai_chat_cog = self.get_cog('AiChat')
-        if ai_chat_cog:
-            await ai_chat_cog.send_start_prompt()
-        
         log(f"logged in as {self.user} (ID: {self.user.id})", Ansi.CYAN)
         await self.tree.sync()
         log("bot is ready!", Ansi.GREEN)

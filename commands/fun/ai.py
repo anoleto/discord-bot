@@ -177,12 +177,8 @@ class AiChat(commands.Cog):
         response = await self.handle_response(user_id, "Hello")
         await interaction.followup.send(f"switched to {p}!")
         
-        if config.starting_prompt_id:
-            channel = self.bot.get_channel(config.starting_prompt_id)
-            if channel:
-                await channel.send(f"switched to prompt: {p}!")
-                if config.DEBUG:
-                    await channel.send(f"initial response: {response}")
+        if config.DEBUG:
+            log(f"initial response: {response}")
 
     async def send_split_message(self, response: str, ctx: commands.Context | discord.Interaction, has_followed_up=False):
         char_limit = 1900
